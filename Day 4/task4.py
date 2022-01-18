@@ -5,6 +5,7 @@ class bingoCard:
     numbersFound = 0
     highestLine = 0
     cardValues = []
+    winner = False
 
 def generateGameNumbers(rawData):
     gameNumbersString = rawData[0]
@@ -83,7 +84,7 @@ def playRound(numberCalled, listOfBingoCards):
 
     return listOfBingoCards
 
-def playGame(gameNumbers, listOfBingoCards):
+def playGameToWin(gameNumbers, listOfBingoCards):
     for number in gameNumbers:
         listOfBingoCards = playRound(number, listOfBingoCards)
 
@@ -91,9 +92,9 @@ def playGame(gameNumbers, listOfBingoCards):
         if(winningCard != ""):
             return number, winningCard
 
-def sumOfUnmarkedNumbers(winningBoard):
+def sumOfUnmarkedNumbers(board):
     sumValue = 0
-    for row in winningBoard.cardValues:
+    for row in board.cardValues:
         for column in row:
             if(column[1] == False):
                 sumValue += column[0]
@@ -111,11 +112,57 @@ gameNumbers, listOfBingoCards = generateGameNumbersAndCards(rawData)
 # print(gameNumbers)
 # print(len(listOfBingoCards))
 
-lastNumberCalled, winningBoard = playGame(gameNumbers, listOfBingoCards)
+lastNumberCalled, winningBoard = playGameToWin(gameNumbers, listOfBingoCards)
 
 print("last number called: ", lastNumberCalled)
-# print("winning board: \nhighestLine", winningBoard.highestLine, "\nnumbers found", winningBoard.numbersFound, "\ncard: \n", winningBoard.cardValues)
+print("winning Board: \nhighestLine", winningBoard.highestLine, "\nnumbers found", winningBoard.numbersFound, "\ncard: \n", winningBoard.cardValues)
 
 sumOfUnmarkedNumbers = sumOfUnmarkedNumbers(winningBoard)
 print("sumOfUnmarkedNumbers: ", sumOfUnmarkedNumbers)
 print("final result: ", sumOfUnmarkedNumbers * lastNumberCalled)
+
+#part 2
+def checkWinners(listOfBingoCards):
+    winners = []
+    for i in range(0, len(listOfBingoCards)):
+        if((listOfBingoCards[i].highestLine == 5) and (listOfBingoCards[i].winner == False)):
+            listOfBingoCards[i].winner = True
+            winners.append(i)
+        
+
+    return listOfBingoCards, winners
+
+def playGameToLose(gameNumbers, listOfBingoCards):
+    winnersList = []
+    for number in gameNumbers:
+        listOfBingoCards = playRound(number, listOfBingoCards)
+
+        listOfBingoCards, winningCards = checkWinners(listOfBingoCards)
+        if(winningCards != []):
+            for winningCard in winningCards:
+                winnersList.append([winningCard, number])
+        if(len(winnersList) == len(listOfBingoCards)):
+            return winnersList
+    return winnersList
+
+print("------------------------------------ part 2 ---------------------------------")
+gameNumbers, listOfBingoCards = generateGameNumbersAndCards(rawData)
+
+winnersList = playGameToLose(gameNumbers, listOfBingoCards)
+# print("winners list \n", winnersList)
+bingoCardIndex = winnersList[(len(winnersList)-1)][0]
+losingBoard = listOfBingoCards[bingoCardIndex]
+
+# print("last number called: ", winnersList[(len(winnersList)-1)][1])
+# print("Losing Board: \nhighestLine", losingBoard.highestLine, "\nnumbers found", losingBoard.numbersFound, "\ncard: \n", losingBoard.cardValues)
+
+sumOfUnmarkedNumbers = 0
+for row in losingBoard.cardValues:
+    for column in row:
+        if(column[1] == False):
+            sumOfUnmarkedNumbers += column[0]
+
+
+# sumOfUnmarkedNumbers = sumOfUnmarkedNumbers(losingBoard)
+print("sumOfUnmarkedNumbers: ", sumOfUnmarkedNumbers)
+print("final result: ", sumOfUnmarkedNumbers * winnersList[(len(winnersList)-1)][1])
